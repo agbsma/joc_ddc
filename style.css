@@ -1,0 +1,615 @@
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+
+:root{
+  --panel: rgba(255,255,255,0.5);
+  --lila: #b35cff;
+
+  --green: #b8f2c9;
+  --red:   #f6b3b3;
+  --blue:  #b8d9ff;
+  --lilac: #e3c1ff;
+
+  --ok: #6ee7a8;
+  --bad: #ff6b6b;
+
+  --font-main: "Poppins", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+
+body{
+  font-family: var(--font-ui);
+  background-image: url("./fons_joc_dona_ciencia.png");
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: auto 100vh;
+  background-attachment: fixed;
+  position: relative;
+  overflow: hidden;
+}
+
+/* fila pregunta + botó ? */
+.questionRow{
+  position: absolute;
+  top: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - 40px));
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.questionRow.hidden{
+  display: none;
+}
+
+
+.pregunta{
+  font-family: var(--font-main);
+  font-weight: 600;          /* una mica més elegant */
+  letter-spacing: -0.005em; /* menys comprimida */
+  line-height: 1.25;        /* millor lectura en frases llargues */
+
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 22px 26px;       /* més aire */
+  font-size: 1.7rem;          /* una mica més protagonista */
+  text-align: center;
+}
+
+
+/* botó hint */
+.hint{
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 1.3rem;
+  background: rgba(255,255,255,0.75);
+}
+.hint:active{ transform: translateY(1px); }
+.hint:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+/* respostes */
+.respostes{
+  position: absolute;
+  top: 320px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - 40px));
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.respostes.hidden{
+  display: none;
+}
+
+.ans{
+  border: none;
+  border-radius: 16px;
+  padding: 14px 16px;
+
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  font-size: 1.05rem;
+
+  cursor: pointer;
+  background: rgba(255,255,255,0.82);
+
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+
+
+.ans.correct{ background: var(--ok); }
+.ans.wrong{ background: var(--bad); color: white; }
+.ans:not(:disabled):hover{
+  background: rgba(255,255,255,0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+/* Overlay de GIF */
+.overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.22);
+  backdrop-filter: blur(2px);
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+.overlay.hidden{
+  opacity: 0;
+  pointer-events: none;
+}
+.overlayGif{
+  width: min(520px, 85vw);
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+/* Scoreboard: 50px sota respostes */
+/* Scoreboard: amplada fixa */
+.scoreboard{
+  width: 520px;                 /* ajusta al gust (ex: 480-600) */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+
+  background: rgba(255,255,255,0.35);
+  border-radius: 14px;
+}
+
+
+.cell{
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 800;
+} 
+/* =========================
+   SCOREBOARD: capçaleres
+   ========================= */
+.head{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  font-family: var(--font-main);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+
+  /* clau perquè NO deformi la graella */
+  min-width: 0;
+  max-width: 100%;
+
+  /* permet 2 línies */
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+/* =========================
+   SCOREBOARD: números
+   ========================= */
+.score{
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: 1.8rem;
+
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums; /* números alineats, look pro */
+}
+
+
+.actions{
+  background: rgba(255,255,255,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scoreBtn{
+  width: 44%;
+  padding: 8px 0;
+
+  border: none;
+  border-radius: 12px;
+
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+
+  line-height: 1;
+  cursor: pointer;
+
+  text-transform: uppercase;
+
+  box-shadow:
+    0 6px 0 rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.45);
+
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    filter 120ms ease;
+}
+.scoreBtn:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+.scoreBtn:active{
+  transform: translateY(4px);
+  box-shadow:
+    0 2px 0 rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.scoreBtn:disabled{
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+
+.green{ background: var(--green); }
+.red{ background: var(--red); }
+.blue{ background: var(--blue); }
+.lilac{ background: var(--lilac); }
+
+/* =========================
+   DAU
+   ========================= */
+.dado{
+  width: 120px;
+  height: 120px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: var(--font-main);
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+
+  border: 3px solid #333;
+  border-radius: 22px;
+
+  background: transparent;
+  line-height: 1;
+}
+
+/* Animació de gir */
+.dado.girando{
+  animation: giro 0.4s linear infinite;
+}
+
+@keyframes giro{
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* =========================
+   TIMER
+   ========================= */
+.timer{
+  width: 120px;
+  height: 120px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: var(--font-main);
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+
+  color: var(--lila);
+  background: var(--panel);
+
+  border: none;
+  border-radius: 14px;   /* 👈 igual que graella / cel·les */
+
+  line-height: 1;
+
+  /* ombra suau com les targetes */
+  /*box-shadow: 0 8px 20px rgba(0,0,0,0.10);*/
+}
+
+/* =========================
+   CONTENIDOR DAU + TIMER
+   ========================= */
+.dadoWrap{
+  position: fixed;
+  left: 100px;
+  bottom: 100px;
+
+  display: grid;
+  grid-template-columns: 120px auto;  /* col 1: timer/dau, col 2: scoreboard */
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "timer scoreboard"
+    "dado  scoreboard";
+
+  column-gap: 22px;
+  row-gap: 12px;
+
+  align-items: start;
+}
+.timerWrap{ grid-area: timer; }
+.dado{ grid-area: dado; }
+.scoreboard{
+  grid-area: scoreboard;
+  align-self: start;
+}
+
+
+/* =========================
+   CONTROLS (GO / STOP)
+   ========================= */
+/* =========================
+   CONTROLS (GO / STOP) — TOP RIGHT
+   ========================= */
+.controls{
+  position: fixed;
+  top: 100px;
+  right: 100px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+
+  z-index: 20; /* per sobre del fons i targetes */
+}
+
+/* GO disabled a 25% (com demanes) */
+.btnGo:disabled{
+  opacity: 0.25;
+}
+
+/* STOP disabled (una mica més visible que GO, però desactivat) */
+.btnStop:disabled{
+  opacity: 0.4;
+}
+
+
+/* =========================
+   BOTÓ BASE
+   ========================= */
+.btn{
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  padding: 16px 30px;
+  border-radius: 16px;
+  border: none;
+
+  cursor: pointer;
+  user-select: none;
+
+  box-shadow:
+    0 10px 22px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.45);
+
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    filter 140ms ease;
+}
+
+/* Hover */
+.btn:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+/* Active */
+.btn:active{
+  transform: translateY(3px);
+  box-shadow:
+    0 6px 14px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+}
+
+/* Disabled */
+.btn:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================
+   GO — PROTAGONISTA
+   ========================= */
+.btnGo{
+  color: white;
+  background: linear-gradient(180deg, #b35cff 0%, #6f2ad1 100%);
+
+  /* Glow suau constant */
+  box-shadow:
+    0 0 0 rgba(179,92,255,0),
+    0 12px 26px rgba(111,42,209,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+/* Glow més fort al hover */
+.btnGo:hover{
+  box-shadow:
+    0 0 14px rgba(179,92,255,0.55),
+    0 16px 34px rgba(111,42,209,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* =========================
+   STOP — NEUTRE / SECUNDARI
+   ========================= */
+.btnStop{
+  color: white;
+  background: linear-gradient(180deg, #9a8cff 0%, #5a3dbb 100%);
+  opacity: 0.85;
+}
+
+.btnStop:hover{
+  opacity: 1;
+}
+
+
+
+
+.timerLabel{
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.85rem;
+
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+ color: #7a2fd6; /* lila més fosc que els números */
+  /* el teu color ja el tens, això només millora “claror” */
+  line-height: 1.1;
+}
+
+/* Hover clar i visible només a GO i STOP */
+.controls .btnGo:hover,
+.controls .btnStop:hover{
+  transform: translateY(-3px) !important;
+  filter: brightness(1.08);
+}
+
+.controls .btnGo:active,
+.controls .btnStop:active{
+  transform: translateY(4px) !important;
+}
+
+/* Contenedor del título */
+.titleWrap{
+  position: absolute;          /* no afecta al layout */
+  top: 1px;                   /* ajusta altura si quieres */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;                 /* por encima del fondo */
+
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;        /* no estorba clics */
+}
+
+/* Imagen del título */
+.titleImg{
+  max-width: min(90vw, 600px); /* centrado y adaptable */
+  height: auto;
+}
+.cell.score{
+  cursor: pointer;
+}
+.cell.score:hover{
+  filter: brightness(1.05);
+}
+.cell.head{
+  cursor: pointer;
+}
+
+.cell.head:hover{
+  filter: brightness(1.05);
+}
+/* Botons rectangulars (Partida nova / Reset total) */
+.btnRect{
+  width: 180px;          /* ajusta si vols més ample */
+  padding: 12px 14px;
+  border-radius: 12px;
+  letter-spacing: 0.06em;
+  text-transform: none;  /* més “UI” */
+  font-weight: 800;
+}
+
+/* Partida nova (neutre) */
+.btnNewGame{
+  color: #2b1a3a;
+  background: rgba(255,255,255,0.70);
+  border: 1px solid rgba(0,0,0,0.10);
+}
+
+/* Reset total (més “alerta”, però sense ser agressiu) */
+.btnResetAll{
+  color: white;
+  background: linear-gradient(180deg, #ff7b7b 0%, #cc3c3c 100%);
+}
+/* =========================
+   BOTONS SOTA EL DAU
+   ========================= */
+
+.belowDiceBtns{
+  position: fixed;
+
+  left: 100px;     /* mateix left que el dau */
+  bottom: 30px;    /* ⬅️ més amunt (menys enganxats al fons) */
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;        /* ⬅️ més junts entre ells */
+
+  width: 120px;    /* ⬅️ EXACTE com el dau */
+}
+
+
+/* Botons més baixos (meitat d'alçada) */
+.belowDiceBtns .btnRect{
+  width: 100%;          /* ocupa exactament els 120px */
+  padding: 6px 6px;     /* ⬅️ menys ample lateral */
+
+  font-size: 0.75rem;
+  border-radius: 10px;
+}
+/* Base botons A B C D */
+.scoreBtn.abcd {
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #333;
+
+  /* 👇 AQUESTA ÉS LA CLAU: mateixa ombra que la resta */
+ box-shadow:
+    0 6px 0 rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.45);
+}
+.scoreBtn.abcd {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 0.85rem;      /* més petita */
+  font-weight: 700;        /* manuscrita no va pesada */
+  letter-spacing: 0.2px;
+  text-transform: none;    /* IMPORTANT: manuscrita ≠ uppercase */
+}
+
+/* Estat desactivat pels botons ABCD */
+.scoreBtn.abcd.disabled {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* Colors ABCD (NO toquem ombra, la fa .scoreBtn) */
+.scoreBtn.abcd.a { background: #f4e38a; } /* groc */
+.scoreBtn.abcd.b { background: #f3b27a; } /* taronja */
+.scoreBtn.abcd.c { background: #8fd6c9; } /* turquesa */
+.scoreBtn.abcd.d { background: #c9b7e2; } /* lila */
+
+/* AB i CD més junts verticalment */
+.scoreboard .cell.actions.row6 {
+  margin-top: -6px;   /* prova -4px si ho vols una mica menys */
+}
+
+/* Al final de tu CSS */
+.ans:disabled {
+  cursor: not-allowed;
+  opacity: 1 !important;
+  color: inherit !important; /* Mantiene el color del texto */
+  -webkit-text-fill-color: currentColor !important; /* Safari/Chrome */
+
+}
+
